@@ -33,6 +33,14 @@ def makespan(mat, job_seq):
 
 
 def getSchedule(mat):
+  """Initial schedule. Hybrid algorithm
+
+  Args:
+      mat (number[][]): flow shop matrix
+
+  Returns:
+      number[]: job schedule
+  """
   n, m = len(mat), len(mat[0])
 
   x_values = np.array([], dtype=np.int32)
@@ -125,7 +133,7 @@ def NEH(mat):
     insertAtOptimalPosition(mat, optimal_order, i)
 
   # get minimum makespan
-  return makespan(mat, optimal_order), optimal_order
+  return optimal_order
 
 
 # mat = np.array([
