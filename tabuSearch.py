@@ -1,8 +1,9 @@
 import numpy as np
-from flowshop import NEH, makespan, getSchedule
+from flowshop import NEH, makespan, hybrid
 import cProfile
 import pstats
 import io
+from plot import plot_flowshop
 
 
 def generateMatrix(jobs, machines, seed):
@@ -46,9 +47,13 @@ def insertion(seq, i, j):
   Returns:
       number[]: new list
   """
-  seq = np.insert(seq, i, seq[j])
-  seq = np.delete(seq, j + 1)
-  return seq
+
+  k = seq[j]
+  tmp = seq.copy()
+  tmp = list(filter(lambda x: x != k, seq))
+  tmp.insert(i, k)
+
+  return tmp
 
 
 def getRandomIndices(n):
@@ -63,7 +68,7 @@ def getRandomIndices(n):
   return np.random.choice(np.arange(n), 2, replace=False)
 
 
-def getNeighborhood(seq):
+def getNeighborhoodRamdom(seq):
   """generate neighborhood of a list by randomly swapping and inserting elements
   in the list
 
@@ -88,6 +93,28 @@ def getNeighborhood(seq):
   return np.unique(neighborhood, axis=0)
 
 
+def getNeighborhoodBySwap(seq):
+  n = len(seq)
+  neighborhood = []
+  for i in range(n - 1):
+    tmp = seq.copy()
+    neighborhood.append(swap(tmp, i, i + 1))
+
+  return neighborhood
+
+
+def getNeighborhoodByInsertion(seq):
+  n = len(seq)
+  neighborhood = []
+  for i in range(n):
+    for j in range(n):
+      if i != j:
+        tmp = seq.copy()
+        neighborhood.append(insertion(tmp, j, i))
+
+  return neighborhood
+
+
 def InTabuList(seq, tabuList):
   """Check if seq is in the tabu list
 
@@ -104,7 +131,7 @@ def InTabuList(seq, tabuList):
   return False
 
 
-# mat = generateMatrix(10, 5, 123)
+mat = generateMatrix(10, 5, 123)
 # mat = generateMatrix(10, 10, 123)
 # mat = generateMatrix(10, 20, 123)
 # mat = generateMatrix(20, 5, 123)
@@ -114,7 +141,7 @@ def InTabuList(seq, tabuList):
 # mat = generateMatrix(50, 10, 123)
 # mat = generateMatrix(50, 20, 123)
 # mat = generateMatrix(100, 5, 123)
-mat = generateMatrix(100, 10, 123)
+# mat = generateMatrix(100, 10, 123)
 # mat = generateMatrix(100, 20, 123)
 # mat = generateMatrix(200, 5, 123)
 # mat = generateMatrix(200, 10, 123)
@@ -124,7 +151,7 @@ mat = generateMatrix(100, 10, 123)
 # mat = generateMatrix(500, 20, 123)
 
 
-def tabuSearch(mat):
+def tabuSearch(mat, getSchedule, tabuListSize, getNeighborhood, maxNoImprovementCount, plot=False):
   """flow shop tabu search
 
   Args:
@@ -133,12 +160,7 @@ def tabuSearch(mat):
   Returns:
       sequence: best job sequence
   """
-  maxNoInprovementCount = 100
-  tabuListSize = 50
-  # initialSequence = NEH(mat)
   initialSequence = getSchedule(mat)
-  # initialSequence = np.arange(len(mat))
-  # np.random.shuffle(initialSequence)
 
   tabuList = []
   best = initialSequence
@@ -148,7 +170,7 @@ def tabuSearch(mat):
   while True:
     improved = False
     print(noImprovementCounter)
-    if noImprovementCounter == maxNoInprovementCount:
+    if noImprovementCounter == maxNoImprovementCount:
       break
     neighborhood = getNeighborhood(best)
     for n in neighborhood:
@@ -167,6 +189,9 @@ def tabuSearch(mat):
       noImprovementCounter = 0
     else:
       noImprovementCounter += 1
+
+  if plot:
+    plot_flowshop(mat, best)
   return best
 
 
@@ -186,12 +211,16 @@ def tabuSearch(mat):
 # ])
 
 
+# print(getNeighborhoodBySwap([0, 1, 2, 3]))
+# print(getNeighborhoodByInsertion([0, 1, 2, 3]))
+
 pr = cProfile.Profile()
 pr.enable()
 
 
-best = tabuSearch(mat)
+best = tabuSearch(mat, hybrid, 7, getNeighborhoodByInsertion, 10, plot=True)
 print("best", best, makespan(mat, best))
+
 
 pr.disable()
 s = io.StringIO()

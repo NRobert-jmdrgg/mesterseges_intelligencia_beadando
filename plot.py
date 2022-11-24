@@ -30,25 +30,26 @@ def getGanttIntervals(mat, job_seq):
   return interval_beginnings, interval_endings
 
 
-mat = [
-  [3, 4, 6, 7],
-  [4, 5, 4, 6],
-  [8, 7, 2, 2],
-  [5, 3, 1, 5],
-  [7, 6, 8, 4]
-]
+# mat = [
+#   [3, 4, 6, 7],
+#   [4, 5, 4, 6],
+#   [8, 7, 2, 2],
+#   [5, 3, 1, 5],
+#   [7, 6, 8, 4]
+# ]
 
-seq = [3, 0, 1, 4, 2]
-
-begin, end = getGanttIntervals(mat, seq)
+# seq = [3, 0, 1, 4, 2]
 
 
-df = pd.DataFrame([
-  dict(Start=begin[i][j], Finish=end[i][j], Task=seq[i]) for j in range(len(mat[0])) for i in range(len(mat))
-])
+def plot_flowshop(mat, seq):
+  begin, end = getGanttIntervals(mat, seq)
 
-fig = create_gantt(df, group_tasks=True)
+  df = pd.DataFrame([
+    dict(Start=begin[i][j], Finish=end[i][j], Task=seq[i]) for j in range(len(mat[0])) for i in range(len(mat))
+  ])
 
-fig.update_xaxes(type='linear')
+  fig = create_gantt(df, group_tasks=True)
 
-fig.show()
+  fig.update_xaxes(type='linear')
+
+  fig.show()

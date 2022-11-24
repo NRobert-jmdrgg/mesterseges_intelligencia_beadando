@@ -32,7 +32,7 @@ def makespan(mat, job_seq):
   return costs[-1][-1]
 
 
-def getSchedule(mat):
+def hybrid(mat):
   """Initial schedule. Hybrid algorithm
 
   Args:
